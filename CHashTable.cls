@@ -78,8 +78,8 @@ Private Const INIT_GAP_SIZE = 128
 '------------------------------------------------------------------------------
 Private Type ArrayElement
   IsTaken As Boolean
-  value As Variant
-  key As String
+  Value As Variant
+  Key As String
 End Type
 
 
@@ -179,7 +179,7 @@ MoveOn:
     Exit Function
   End If
 DirectExec:
-  If mArray(index).IsTaken = True And mArray(index).key = keyword Then
+  If mArray(index).IsTaken = True And mArray(index).Key = keyword Then
     findIndex = index
     Exit Function
   Else
@@ -226,7 +226,68 @@ Private Function calcInitIndex(ByVal keyword As String) As Long
   calcInitIndex = index
 End Function
 
+Private Function UTF8_URLEncoding(ByVal szInput As String)
+  Dim wch As String, uch As String, szRet As String
+  Dim x As Long
+  Dim nAsc As Long, nAsc2 As Long, nAsc3 As Long
+  If szInput = "" Then
+    UTF8_URLEncoding = szInput
+    Exit Function
+  End If
+  For x = 1 To Len(szInput)
+    wch = Mid(szInput, x, 1)
+    nAsc = AscW(wch)
+    
+    If nAsc < 0 Then nAsc = nAsc + 65536
+    
+    If (nAsc And &HFF80) = 0 Then
+      szRet = szRet & wch
+    Else
+      If (nAsc And &HF000) = 0 Then
+        uch = "%" & Hex(((nAsc \ 2 ^ 6)) Or &HC0) & Hex(nAsc And &H3F Or &H80)
+        szRet = szRet & uch
+      Else
+        uch = "%" & Hex((nAsc \ 2 ^ 12) Or &HE0) & "%" & _
+        Hex((nAsc \ 2 ^ 6) And &H3F Or &H80) & "%" & _
+        Hex(nAsc And &H3F Or &H80)
+        szRet = szRet & uch
+      End If
+    End If
+  Next
+  UTF8_URLEncoding = szRet
+End Function
 
+Public Function UTF8_UrlDecode(ByVal URL As String)
+    Dim B, ub   ''中文字的Unicode码(2字节)
+    Dim UtfB    ''Utf-8单个字节
+    Dim UtfB1, UtfB2, UtfB3 ''Utf-8码的三个字节
+    Dim i, n, s
+    n = 0
+    ub = 0
+    For i = 1 To Len(URL)
+        B = Mid(URL, i, 1)
+        Select Case B
+            Case "+"
+                s = s & " "
+            Case "%"
+                ub = Mid(URL, i + 1, 2)
+                UtfB = CInt("&H" & ub)
+                If UtfB < 128 Then
+                    i = i + 2
+                    s = s & ChrW(UtfB)
+                Else
+                    UtfB1 = (UtfB And &HF) * &H1000   ''取第1个Utf-8字节的二进制后4位
+                    UtfB2 = (CInt("&H" & Mid(URL, i + 4, 2)) And &H3F) * &H40      ''取第2个Utf-8字节的二进制后6位
+                    UtfB3 = CInt("&H" & Mid(URL, i + 7, 2)) And &H3F      ''取第3个Utf-8字节的二进制后6位
+                    s = s & ChrW(UtfB1 Or UtfB2 Or UtfB3)
+                    i = i + 8
+                End If
+            Case Else    ''Ascii码
+                s = s & B
+        End Select
+    Next
+    UTF8_UrlDecode = s
+End Function
 '//////////////////////////////////////////////////////////////////////////////
 '//
 '//      继承实现
@@ -258,31 +319,42 @@ End Property
 '//      公有方法
 '//
 '//////////////////////////////////////////////////////////////////////////////
+Public Function ToURLParams(ParamArray Params()) As String
+  Dim param As Variant
+  Dim encodedURL As String
+  For Each param In Params
+    If encodedURL = "" Then
+      encodedURL = param & "=" & UTF8_URLEncoding(Item(param))
+    Else
+      encodedURL = encodedURL & "&" & param & "=" & UTF8_URLEncoding(Item(param))
+    End If
+  Next
+  ToURLParams = encodedURL
+End Function
 
-
-Public Sub Add(ByVal key As String, ByVal value As Variant)
+Public Sub Add(ByVal Key As String, ByVal Value As Variant)
   Dim index As Long
   
-  If findIndex(key) > 0 Then
+  If findIndex(Key) > 0 Then
     Err.Raise 1002, , "[SunSoft]关键字重复，无法添加"
   End If
-  index = findFreeIndex(key)
+  index = findFreeIndex(Key)
   If index < 0 Then
     Call expandArray
-    index = findFreeIndex(key)
+    index = findFreeIndex(Key)
   End If
   mArray(index).IsTaken = True
-  mArray(index).key = key
-  mArray(index).value = value
+  mArray(index).Key = Key
+  mArray(index).Value = Value
 End Sub
 
 Public Property Get Item(ByVal key As String) As Variant
   Dim index As Long
   index = findIndex(key)
-  Item = mArray(index).value
+  Item = mArray(index).Value
 End Property
 
-Public Property Let Item(ByVal key As String, value As Variant)
+Public Property Let Item(ByVal key As String, Value As Variant)
   Dim index As Long
   
   index = findIndex(key)
@@ -290,7 +362,7 @@ Public Property Let Item(ByVal key As String, value As Variant)
   If index > 0 Then
     mArray(index).IsTaken = True
     mArray(index).key = key
-    mArray(index).value = value
+    mArray(index).Value = Value
     Exit Property
   End If
   index = findFreeIndex(key)
@@ -300,5 +372,5 @@ Public Property Let Item(ByVal key As String, value As Variant)
   End If
   mArray(index).IsTaken = True
   mArray(index).key = key
-  mArray(index).value = value
+  mArray(index).Value = Value
 End Property
