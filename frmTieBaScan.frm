@@ -9,9 +9,26 @@ Begin VB.Form frmTieBaScan
    ScaleHeight     =   5550
    ScaleWidth      =   11910
    StartUpPosition =   3  '´°¿ÚÈ±Ê¡
-   Begin VB.ListBox lstURL 
-      Height          =   4560
+   Begin VB.CommandButton Command2 
+      Caption         =   "ÅäÖÃÐÅÏ¢"
+      Height          =   495
+      Left            =   7920
+      TabIndex        =   18
+      Top             =   4920
+      Width           =   2055
+   End
+   Begin VB.CommandButton Command1 
+      Caption         =   "ÅúÁ¿É¾Ìû"
+      Height          =   495
       Left            =   5640
+      TabIndex        =   17
+      Top             =   4920
+      Width           =   2055
+   End
+   Begin VB.ListBox lstURL 
+      Height          =   4260
+      Left            =   5640
+      Style           =   1  'Checkbox
       TabIndex        =   1
       Top             =   480
       Width           =   6135
@@ -41,18 +58,18 @@ Begin VB.Form frmTieBaScan
       End
       Begin VB.TextBox txtPageStart 
          Height          =   270
-         Left            =   3360
+         Left            =   3480
          TabIndex        =   12
          Text            =   "1"
          Top             =   600
-         Width           =   735
+         Width           =   615
       End
       Begin VB.TextBox txtKeyWord 
          Height          =   270
-         Left            =   3480
+         Left            =   3600
          TabIndex        =   10
          Top             =   270
-         Width           =   1815
+         Width           =   1695
       End
       Begin VB.CommandButton btnScan 
          Caption         =   "É¨Ãè"
@@ -80,10 +97,10 @@ Begin VB.Form frmTieBaScan
       End
       Begin VB.TextBox txtTieBa 
          Height          =   270
-         Left            =   720
+         Left            =   840
          TabIndex        =   5
          Top             =   270
-         Width           =   2055
+         Width           =   1935
       End
       Begin VB.ListBox lstTieBas 
          Height          =   3660
@@ -97,16 +114,16 @@ Begin VB.Form frmTieBaScan
          Height          =   255
          Left            =   4200
          TabIndex        =   13
-         Top             =   650
-         Width           =   255
+         Top             =   645
+         Width           =   375
       End
       Begin VB.Label Label4 
          Caption         =   "Ò³Âë"
          Height          =   255
          Left            =   2880
          TabIndex        =   11
-         Top             =   650
-         Width           =   375
+         Top             =   645
+         Width           =   615
       End
       Begin VB.Label Label3 
          Caption         =   "¹Ø¼ü´Ê"
@@ -114,7 +131,7 @@ Begin VB.Form frmTieBaScan
          Left            =   2880
          TabIndex        =   9
          Top             =   285
-         Width           =   615
+         Width           =   735
       End
       Begin VB.Label Label2 
          Caption         =   "ÐÂÌù°É"
@@ -122,7 +139,7 @@ Begin VB.Form frmTieBaScan
          Left            =   120
          TabIndex        =   4
          Top             =   285
-         Width           =   615
+         Width           =   735
       End
    End
    Begin VB.Label lblStatus 
@@ -190,8 +207,8 @@ Private Sub btnReadHistory_Click()
   End If
   
   Do While Not res.EOF
-    ht.Item(lstURL.ListCount) = res.fields("url").value
-    lstURL.AddItem res.fields("title").value
+    ht.Item(lstURL.ListCount) = res.fields("url").Value
+    lstURL.AddItem res.fields("title").Value
     res.MoveNext
   Loop
   
@@ -245,11 +262,17 @@ Private Sub btnScan_Click()
   For i = minPage To maxPage
     SetStatus "µ±Ç°Ò³Âë£º" & i
     Call scanPage(currentBar, txtKeyWord.text, i)
+    DoEvents
   Next i
+End Sub
+
+Private Sub Command1_Click()
+
 End Sub
 
 Private Sub Form_Load()
   InitForm
+  SetWindowPos Me.hwnd, HWND_TOPMOST, 0&, 0&, 0&, 0&, SWP_NOMOVE Or SWP_NOSIZE
 End Sub
 
 Private Sub lstTieBas_Click()
@@ -286,7 +309,7 @@ Private Sub scanPage(ByVal barName As String, ByVal keyword As String, ByVal pag
 
   Set htmlHrefs = htmlDom.getElementsByTagName("a")
   For Each htmlHref In htmlHrefs
-    If LCase(htmlHref.ClassName) = "j_th_tit" Then
+    If LCase(htmlHref.className) = "j_th_tit " Then
       If htmlHref.title Like "*" & keyword & "*" Then
         ht.Item(lstURL.ListCount) = baseUrl & htmlHref.pathname
         'save to db
@@ -304,9 +327,14 @@ Private Sub InitForm()
     Exit Sub
   End If
   Do While Not res.EOF
-    lstTieBas.AddItem res.fields("bar_name").value
-    tb.Item(res.fields("bar_name").value) = res.fields("id").value
+    lstTieBas.AddItem res.fields("bar_name").Value
+    tb.Item(res.fields("bar_name").Value) = res.fields("id").Value
     res.MoveNext
   Loop
   eTieba.Db.ReleaseRecordset res
+End Sub
+
+'É¾Ìû´úÂë
+Private Sub DeleteOnePost(ByVal url As String)
+
 End Sub

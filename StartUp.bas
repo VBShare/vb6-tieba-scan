@@ -5,6 +5,15 @@ Public Declare Function ShellExecute Lib "shell32.dll" Alias "ShellExecuteA" _
 (ByVal hwnd As Long, ByVal lpOperation As String, ByVal lpFile As String, _
 ByVal lpParameters As String, ByVal lpDirectory As String, ByVal nShowCmd As Long) As Long
 
+Public Declare Function SetWindowPos Lib "user32" (ByVal hwnd As Long, ByVal hWndInsertAfter As Long, ByVal X As Long, ByVal Y As Long, ByVal cx As Long, ByVal cy As Long, ByVal wFlags As Long) As Long
+
+Public Const SWP_NOSIZE = &H1
+Public Const SWP_NOMOVE = &H2
+Public Const HWND_TOP = 0
+Public Const SWP_NOACTIVATE = &H10
+Public Const SWP_SHOWWINDOW = &H40
+Public Const HWND_TOPMOST = -1
+
 Public eScanLog As New DBScanLog
 Public eTieba As New DBTieBa
 Public ht As New CHashTable
