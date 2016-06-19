@@ -18,6 +18,7 @@ Public eScanLog As New DBScanLog
 Public eTieba As New DBTieBa
 Public ht As New CHashTable
 Public tb As New CHashTable
+Public config As New CConfig
 
 Public Sub OpenWeb(ByVal URLs As String) 'ok at 12-05-10[RE]
   '程序功能：打开网页
@@ -31,13 +32,28 @@ Sub Main()
   If Dir(DbPath) = "" Then
     CreateDb DbPath
   End If
+  If Dir(App.Path & "\config.dat") <> "" Then
+    config.LoadFromFile App.Path & "\config.dat"
+  End If
   
   eScanLog.InitConn DbPath
   eTieba.InitConn DbPath
   
   Load frmTieBaScan
+  Load frmConfig
+
+  With frmConfig
+    If VarType(config.Item("cookie")) <> 9 Then
+      .txtCookie.text = config.Item("cookie")
+    End If
+    If VarType(config.Item("data")) <> 9 Then
+      .txtData.text = config.Item("data")
+    End If
+  End With
   frmTieBaScan.Show
 End Sub
+
+
 
 Public Sub CreateDb(ByVal DbPath As String)
   Dim dbc As New DbCreateHelper

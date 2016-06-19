@@ -1,21 +1,21 @@
 VERSION 5.00
 Begin VB.Form frmTieBaScan 
    Caption         =   "扫描"
-   ClientHeight    =   5550
+   ClientHeight    =   5865
    ClientLeft      =   60
    ClientTop       =   405
    ClientWidth     =   11910
    LinkTopic       =   "Form1"
-   ScaleHeight     =   5550
+   ScaleHeight     =   5865
    ScaleWidth      =   11910
    StartUpPosition =   3  '窗口缺省
    Begin VB.CommandButton Command2 
       Caption         =   "配置信息"
       Height          =   495
-      Left            =   7920
+      Left            =   7440
       TabIndex        =   18
       Top             =   4920
-      Width           =   2055
+      Width           =   1335
    End
    Begin VB.CommandButton Command1 
       Caption         =   "批量删帖"
@@ -23,23 +23,31 @@ Begin VB.Form frmTieBaScan
       Left            =   5640
       TabIndex        =   17
       Top             =   4920
-      Width           =   2055
+      Width           =   1575
    End
    Begin VB.ListBox lstURL 
-      Height          =   4260
+      Height          =   4470
       Left            =   5640
       Style           =   1  'Checkbox
       TabIndex        =   1
-      Top             =   480
+      Top             =   360
       Width           =   6135
    End
    Begin VB.Frame Frame1 
       Caption         =   "贴吧控制台"
-      Height          =   4935
+      Height          =   5295
       Left            =   120
       TabIndex        =   0
       Top             =   120
       Width           =   5415
+      Begin VB.CommandButton Command3 
+         Caption         =   "清空已被删除"
+         Height          =   495
+         Left            =   2880
+         TabIndex        =   19
+         Top             =   2160
+         Width           =   2415
+      End
       Begin VB.CommandButton btnReadHistory 
          Caption         =   "读取历史记录"
          Height          =   495
@@ -103,7 +111,7 @@ Begin VB.Form frmTieBaScan
          Width           =   1935
       End
       Begin VB.ListBox lstTieBas 
-         Height          =   3660
+         Height          =   4020
          Left            =   120
          TabIndex        =   3
          Top             =   1080
@@ -147,7 +155,7 @@ Begin VB.Form frmTieBaScan
       Height          =   180
       Left            =   120
       TabIndex        =   15
-      Top             =   5200
+      Top             =   5500
       Width           =   90
    End
    Begin VB.Label Label1 
@@ -155,7 +163,7 @@ Begin VB.Form frmTieBaScan
       Height          =   255
       Left            =   5640
       TabIndex        =   2
-      Top             =   240
+      Top             =   100
       Width           =   495
    End
 End
@@ -168,6 +176,7 @@ Option Explicit
 
 Private res As ADODB.Recordset
 Private currentBar As String
+Private currentCheck As Long
 
 '****************** Event Handler ******************
 
@@ -195,6 +204,8 @@ End Sub
 
 Private Sub btnReadHistory_Click()
   Dim res As ADODB.Recordset
+  
+  If currentBar = "" Then Exit Sub
   
   Set ht = Nothing
   Set ht = New CHashTable
@@ -267,7 +278,62 @@ Private Sub btnScan_Click()
 End Sub
 
 Private Sub Command1_Click()
+  Dim i As Long, url As String
+  If lstURL.ListCount = 0 Then Exit Sub
+  If frmConfig.txtCookie.text = "" Or frmConfig.txtData.text = "" Then
+    MsgBox "请配置参数"
+    Exit Sub
+  End If
+  For i = 0 To lstURL.ListCount - 1
+    If lstURL.Selected(i) = True Then
+      SetStatus "删帖 - " & lstURL.List(i)
+      DoEvents
+      url = ht.Item(i)
+      Call DeleteOnePost(url)
+      SetStatus "删帖完成 - " & lstURL.List(i)
+      DoEvents
+    End If
+  Next i
+  SetStatus "待命"
+End Sub
 
+Private Sub Command2_Click()
+  frmConfig.Show
+End Sub
+
+Private Sub Command3_Click()
+  Dim res As ADODB.Recordset
+  Dim webGet As New WebCode
+  Dim url As String
+  Dim total As Long, index As Long
+  
+  If currentBar = "" Then Exit Sub
+  
+  Set ht = Nothing
+  Set ht = New CHashTable
+  
+  Set res = eScanLog.Where("`bar_id` = ?", tb.Item(currentBar))
+  
+  If res.RecordCount = 0 Then
+    eScanLog.Db.ReleaseRecordset res
+    Exit Sub
+  End If
+  total = res.RecordCount
+  index = 0
+  Do While Not res.EOF
+    index = index + 1
+    url = res.fields("url").Value
+    SetStatus "[" & index & "/" & total & "]检查：" & url
+    If InStr(1, webGet.GetHTMLCode(url), "doodle-404") > 0 Then
+      SetStatus "[" & index & "/" & total & "]已不存在：" & url
+      eScanLog.Db.ExecParamNonQuery "delete from scan_logs where id=?", res.fields("id").Value
+    End If
+    res.MoveNext
+  Loop
+  
+  eScanLog.Db.ReleaseRecordset res
+  
+  SetStatus "待命"
 End Sub
 
 Private Sub Form_Load()
@@ -275,18 +341,20 @@ Private Sub Form_Load()
   SetWindowPos Me.hwnd, HWND_TOPMOST, 0&, 0&, 0&, 0&, SWP_NOMOVE Or SWP_NOSIZE
 End Sub
 
+Private Sub Form_Unload(Cancel As Integer)
+  Debug.Print "end"
+  End
+End Sub
+
 Private Sub lstTieBas_Click()
   currentBar = lstTieBas.List(lstTieBas.ListIndex)
 End Sub
 
-Private Sub lstURL_Click()
-  Dim url As String
-  url = ht.Item(lstURL.ListIndex)
-  OpenWeb url
-End Sub
+
 '****************** Methods ******************
 Private Sub SetStatus(ByVal description As String)
   lblStatus.Caption = description
+  DoEvents
 End Sub
 
 Private Sub scanPage(ByVal barName As String, ByVal keyword As String, ByVal pageIndex As Long)
@@ -336,5 +404,30 @@ End Sub
 
 '删帖代码
 Private Sub DeleteOnePost(ByVal url As String)
+  Dim mWinHttpReq As New WinHttp.WinHttpRequest
+  Dim shuju As String
+  shuju = frmConfig.txtData.text & "tid=" & Mid(url, InStrRev(url, "/") + 1)
+  mWinHttpReq.Open "POST", "http://tieba.baidu.com/f/commit/thread/delete", True
+  mWinHttpReq.SetTimeouts 30000, 30000, 30000, 30000
+  mWinHttpReq.SetRequestHeader "Host", "tieba.baidu.com"
+  mWinHttpReq.SetRequestHeader "Connection", "keep-alive"
+  mWinHttpReq.SetRequestHeader "Content-Length", Len(shuju)
+  mWinHttpReq.SetRequestHeader "Cache-Control", "max-age=0"
+  mWinHttpReq.SetRequestHeader "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+  mWinHttpReq.SetRequestHeader "Origin", "http://tieba.baidu.com"
+  mWinHttpReq.SetRequestHeader "User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36"
+  mWinHttpReq.SetRequestHeader "Content-Type", "application/x-www-form-urlencoded"
+  mWinHttpReq.SetRequestHeader "Referer", url
+  mWinHttpReq.SetRequestHeader "Accept-Language", "zh-CN,zh;q=0.8"
+  mWinHttpReq.SetRequestHeader "Cookie", frmConfig.txtCookie.text
+  mWinHttpReq.Send shuju       '发送
+  mWinHttpReq.WaitForResponse  '异步发送
+  Set mWinHttpReq = Nothing
+End Sub
 
+Private Sub lstURL_DblClick()
+  Dim url As String
+  If lstURL.ListCount = 0 Then Exit Sub
+  url = ht.Item(lstURL.ListIndex)
+  OpenWeb url
 End Sub

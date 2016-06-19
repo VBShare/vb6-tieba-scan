@@ -1,9 +1,11 @@
-frmTieBaScan = 220, 36, 1118, 547, , 26, 26, 872, 503, C
-AdodbHelper = 52, 52, 931, 484, 
+frmTieBaScan = 139, 28, 1037, 539, , 26, 26, 872, 503, C
+AdodbHelper = 52, 52, 931, 484, C
 DbCreateHelper = 0, 0, 0, 0, C
 DBModel = 0, 0, 0, 0, C
 WebCode = 109, 2, 988, 434, C
-CHashTable = 26, 26, 905, 458, 
+CHashTable = 26, 26, 905, 458, C
 DBTieBa = 100, 50, 979, 482, C
-DBScanLog = 110, 31, 989, 463, 
+DBScanLog = 110, 31, 989, 463, C
 StartUp = 151, 160, 1030, 592, C
+frmConfig = 209, 123, 1088, 555, C, 182, 182, 1061, 614, C
+CConfig = 0, 0, 0, 0, C
