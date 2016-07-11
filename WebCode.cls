@@ -395,14 +395,14 @@ End Function
 
 Public Function UTF8_URLEncoding(ByVal szInput As String)
   Dim wch As String, uch As String, szRet As String
-  Dim x As Long
+  Dim X As Long
   Dim nAsc As Long, nAsc2 As Long, nAsc3 As Long
   If szInput = "" Then
       UTF8_URLEncoding = szInput
       Exit Function
   End If
-  For x = 1 To Len(szInput)
-    wch = Mid(szInput, x, 1)
+  For X = 1 To Len(szInput)
+    wch = Mid(szInput, X, 1)
     nAsc = AscW(wch)
     
     If nAsc < 0 Then nAsc = nAsc + 65536

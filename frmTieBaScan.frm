@@ -40,6 +40,14 @@ Begin VB.Form frmTieBaScan
       TabIndex        =   0
       Top             =   120
       Width           =   5415
+      Begin VB.CommandButton btnClearRep 
+         Caption         =   "去除重复"
+         Height          =   495
+         Left            =   2880
+         TabIndex        =   20
+         Top             =   2760
+         Width           =   2415
+      End
       Begin VB.CommandButton Command3 
          Caption         =   "清空已被删除"
          Height          =   495
@@ -199,7 +207,22 @@ Private Sub btnAdd_Click()
 
   eTieba.Create barName
   
+  tb.Item(barName) = eTieba.Where("bar_name = ?", barName).fields("id").Value
+  
   lstTieBas.AddItem barName
+End Sub
+
+Private Sub btnClearRep_Click()
+  Dim rec_before As Long, rec_after As Long
+  Dim t_start As Date, t_end As Date
+  rec_before = eScanLog.RecordNumber
+  t_start = Now
+  SetStatus "处理中..."
+  eScanLog.ClearRepeate
+  rec_after = eScanLog.RecordNumber
+  t_end = Now
+  MsgBox "重复数据清理完成，耗时" & DateDiff("s", t_start, t_end) & "秒，去除记录：" & rec_before - rec_after & "条"
+  SetStatus "待命"
 End Sub
 
 Private Sub btnReadHistory_Click()
@@ -209,6 +232,7 @@ Private Sub btnReadHistory_Click()
   
   Set ht = Nothing
   Set ht = New CHashTable
+  lstURL.Clear
   
   Set res = eScanLog.Where("`bar_id` = ?", tb.Item(currentBar))
   
@@ -305,7 +329,7 @@ Private Sub Command3_Click()
   Dim res As ADODB.Recordset
   Dim webGet As New WebCode
   Dim url As String
-  Dim total As Long, index As Long
+  Dim total As Long, index As Long, delcount As Long
   
   If currentBar = "" Then Exit Sub
   
@@ -323,17 +347,17 @@ Private Sub Command3_Click()
   Do While Not res.EOF
     index = index + 1
     url = res.fields("url").Value
-    SetStatus "[" & index & "/" & total & "]检查：" & url
     If InStr(1, webGet.GetHTMLCode(url), "doodle-404") > 0 Then
-      SetStatus "[" & index & "/" & total & "]已不存在：" & url
       eScanLog.Db.ExecParamNonQuery "delete from scan_logs where id=?", res.fields("id").Value
+      delcount = delcount + 1
     End If
+    SetStatus "[" & index & "/" & total & "/" & delcount & "]检查：" & url
     res.MoveNext
   Loop
   
   eScanLog.Db.ReleaseRecordset res
   
-  SetStatus "待命"
+  'SetStatus "待命"
 End Sub
 
 Private Sub Form_Load()

@@ -83,7 +83,7 @@ Public Sub Create(ByVal bar_id As Long, ByVal keyword As String, ByVal url As St
   If res.RecordCount = 0 Then
     id = 0
   Else
-    id = res.fields("id").value
+    id = res.fields("id").Value
   End If
   id = id + 1
   '"id:integer,bar_id:integer,keyword:string,url:text"
@@ -92,4 +92,25 @@ Public Sub Create(ByVal bar_id As Long, ByVal keyword As String, ByVal url As St
   m_DBH.ExecParamNonQuery sql, id, bar_id, keyword, url, title
 End Sub
 
+Public Sub ClearRepeate()
+  Dim sql As String
+  Dim res As ADODB.Recordset
+  Dim counter As Long
+  sql = "SELECT bar_id,title,url FROM scan_logs GROUP BY url,bar_id,title"
+  Set res = m_DBH.ExecQuery(sql)
+  m_DBH.ExecNonQuery "DELETE FROM scan_logs"
+  sql = "INSERT INTO `" & m_TableName & "` (`id`, `bar_id`, `keyword`, `url`, `title`) VALUES (" & _
+        "?, ?, '', ?, ?);"
+  Do While Not res.EOF
+    counter = counter + 1
+    m_DBH.ExecParamNonQuery sql, counter, res.fields("bar_id").Value, res.fields("url").Value, res.fields("title").Value
+    DoEvents
+    res.MoveNext
+  Loop
+End Sub
 
+Public Function RecordNumber() As Long
+  Dim sql As String
+  sql = "SELECT COUNT(1) FROM " & m_TableName
+  RecordNumber = CLng(m_DBH.ExecQueryScalar(sql))
+End Function

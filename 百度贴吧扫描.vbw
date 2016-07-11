@@ -1,6 +1,6 @@
-frmTieBaScan = 139, 28, 1037, 539, , 26, 26, 872, 503, C
+frmTieBaScan = 77, 98, 975, 609, , 107, 74, 953, 551, C
 AdodbHelper = 52, 52, 931, 484, C
-DbCreateHelper = 0, 0, 0, 0, C
+DbCreateHelper = 78, 78, 1076, 430, C
 DBModel = 0, 0, 0, 0, C
 WebCode = 109, 2, 988, 434, C
 CHashTable = 26, 26, 905, 458, C
