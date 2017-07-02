@@ -16,7 +16,7 @@ Implements DBModel
 'Private
 Private m_TableName As String
 Private m_TableFields As String
-Private m_DBH As New AdodbHelper
+Private m_DBH As New clsAccessHelper
 Private m_UserName As String
 Private m_IsChain As Boolean
 
@@ -27,10 +27,10 @@ Private Sub Class_Initialize()
   m_TableFields = "id:integer,bar_name:string,remarks:text"
 End Sub
 
-Private Property Get DbModel_Db() As AdodbHelper
+Private Property Get DbModel_Db() As clsAccessHelper
   Set DbModel_Db = m_DBH
 End Property
-Public Property Get Db() As AdodbHelper
+Public Property Get Db() As clsAccessHelper
   Set Db = DbModel_Db
 End Property
 
@@ -56,49 +56,49 @@ Public Property Get TableName() As String
 End Property
 
 Private Function DBModel_Where(ByVal Conditions As String, ParamArray Params() As Variant) As ADODB.Recordset
-  Dim sql As String
+  Dim SQL As String
   If Len(Conditions) = 0 Then
-    sql = "select * from " & m_TableName
+    SQL = "select * from " & m_TableName
   Else
-    sql = "select * from " & m_TableName & " where " & Conditions
+    SQL = "select * from " & m_TableName & " where " & Conditions
   End If
-  Set DBModel_Where = m_DBH.ExecParamQuery(sql, Params)
+  Set DBModel_Where = m_DBH.ExecParamQuery(SQL, Params)
 End Function
 
 Public Function Where(ByVal Conditions As String, ParamArray Params() As Variant) As ADODB.Recordset
-  Dim sql As String
+  Dim SQL As String
   If Len(Conditions) = 0 Then
-    sql = "select * from " & m_TableName
+    SQL = "select * from " & m_TableName
   Else
-    sql = "select * from " & m_TableName & " where " & Conditions
+    SQL = "select * from " & m_TableName & " where " & Conditions
   End If
-  Set Where = m_DBH.ExecParamQuery(sql, Params)
+  Set Where = m_DBH.ExecParamQuery(SQL, Params)
 End Function
 
 Public Sub Create(ByVal name As String)
-  Dim sql As String
+  Dim SQL As String
   Dim id As Long
-  Dim res As ADODB.Recordset
-  Set res = m_DBH.ExecQuery("select id from " & m_TableName & " order by id desc")
-  If res.RecordCount = 0 Then
+  Dim Res As ADODB.Recordset
+  Set Res = m_DBH.ExecQuery("select id from " & m_TableName & " order by id desc")
+  If Res.RecordCount = 0 Then
     id = 0
   Else
-    id = res.fields("id").Value
+    id = Res.Fields("id").Value
   End If
   id = id + 1
   
-  sql = "INSERT INTO `" & m_TableName & "` (`id`, `bar_name`, `remarks`) VALUES (" & _
+  SQL = "INSERT INTO `" & m_TableName & "` (`id`, `bar_name`, `remarks`) VALUES (" & _
         "?, ?, ?);"
-  m_DBH.ExecParamNonQuery sql, id, name, "init"
+  m_DBH.ExecParamNonQuery SQL, id, name, "init"
 End Sub
 
 Public Function BarExist(ByVal barName As String) As Boolean
-  Dim res As ADODB.Recordset
-  Set res = m_DBH.ExecParamQuery("select `id` from `tiebas` where `bar_name` = ?", barName)
-  If res.RecordCount > 0 Then
+  Dim Res As ADODB.Recordset
+  Set Res = m_DBH.ExecParamQuery("select `id` from `tiebas` where `bar_name` = ?", barName)
+  If Res.RecordCount > 0 Then
     BarExist = True
   Else
     BarExist = False
   End If
-  m_DBH.ReleaseRecordset res
+  m_DBH.ReleaseRecordset Res
 End Function

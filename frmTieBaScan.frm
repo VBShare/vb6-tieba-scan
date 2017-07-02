@@ -14,14 +14,14 @@ Begin VB.Form frmTieBaScan
       Caption         =   "Get"
       Height          =   375
       Left            =   3600
-      TabIndex        =   30
+      TabIndex        =   29
       Top             =   6600
       Width           =   855
    End
    Begin SHDocVwCtl.WebBrowser WebBrowser1 
       Height          =   1095
       Left            =   120
-      TabIndex        =   29
+      TabIndex        =   28
       Top             =   6120
       Width           =   3375
       ExtentX         =   5953
@@ -47,7 +47,7 @@ Begin VB.Form frmTieBaScan
       Caption         =   "清空"
       Height          =   495
       Left            =   7800
-      TabIndex        =   28
+      TabIndex        =   27
       Top             =   5520
       Width           =   855
    End
@@ -55,7 +55,7 @@ Begin VB.Form frmTieBaScan
       Caption         =   "反选"
       Height          =   495
       Left            =   6720
-      TabIndex        =   27
+      TabIndex        =   26
       Top             =   5520
       Width           =   855
    End
@@ -63,7 +63,7 @@ Begin VB.Form frmTieBaScan
       Caption         =   "全选"
       Height          =   495
       Left            =   5640
-      TabIndex        =   26
+      TabIndex        =   25
       Top             =   5520
       Width           =   855
    End
@@ -71,14 +71,14 @@ Begin VB.Form frmTieBaScan
       Caption         =   "提交"
       Height          =   375
       Left            =   4440
-      TabIndex        =   25
+      TabIndex        =   24
       Top             =   6600
       Width           =   1095
    End
    Begin VB.TextBox txtVCode 
       Height          =   375
       Left            =   3600
-      TabIndex        =   24
+      TabIndex        =   23
       Top             =   6120
       Width           =   1935
    End
@@ -86,7 +86,7 @@ Begin VB.Form frmTieBaScan
       Caption         =   "导出到剪贴板"
       Height          =   495
       Left            =   9960
-      TabIndex        =   23
+      TabIndex        =   22
       Top             =   4920
       Width           =   1785
    End
@@ -94,7 +94,7 @@ Begin VB.Form frmTieBaScan
       Caption         =   "批量打开"
       Height          =   495
       Left            =   8520
-      TabIndex        =   21
+      TabIndex        =   20
       Top             =   4920
       Width           =   1300
    End
@@ -133,7 +133,7 @@ Begin VB.Form frmTieBaScan
          Caption         =   "读取已举报历史"
          Height          =   495
          Left            =   2880
-         TabIndex        =   33
+         TabIndex        =   32
          Top             =   4560
          Width           =   2415
       End
@@ -141,7 +141,7 @@ Begin VB.Form frmTieBaScan
          Caption         =   "读取未举报历史"
          Height          =   495
          Left            =   2880
-         TabIndex        =   32
+         TabIndex        =   31
          Top             =   3960
          Width           =   2415
       End
@@ -149,16 +149,8 @@ Begin VB.Form frmTieBaScan
          Caption         =   "搜索用户"
          Height          =   495
          Left            =   2880
-         TabIndex        =   22
+         TabIndex        =   21
          Top             =   3360
-         Width           =   2415
-      End
-      Begin VB.CommandButton btnClearRep 
-         Caption         =   "去除重复"
-         Height          =   495
-         Left            =   2880
-         TabIndex        =   20
-         Top             =   2760
          Width           =   2415
       End
       Begin VB.CommandButton Command3 
@@ -274,7 +266,7 @@ Begin VB.Form frmTieBaScan
    Begin VB.Label Label6 
       Height          =   255
       Left            =   5640
-      TabIndex        =   31
+      TabIndex        =   30
       Top             =   6240
       Width           =   6135
    End
@@ -309,7 +301,7 @@ Private Type TGUID
 End Type
 Private Declare Function OleLoadPicturePath Lib "oleaut32.dll" (ByVal szURLorPath As Long, ByVal punkCaller As Long, ByVal dwReserved As Long, ByVal clrReserved As OLE_COLOR, ByRef riid As TGUID, ByRef ppvRet As IPicture) As Long
 
-Private res As ADODB.Recordset
+Private Res As ADODB.Recordset
 Private currentBar As String
 Private currentCheck As Long
 Private tiebaOp As New TieBaOpr
@@ -335,22 +327,9 @@ Private Sub btnAdd_Click()
 
   eTieba.Create barName
   
-  tb.Item(barName) = eTieba.Where("bar_name = ?", barName).fields("id").value
+  tb.Item(barName) = eTieba.Where("bar_name = ?", barName).Fields("id").Value
   
   lstTieBas.AddItem barName
-End Sub
-
-Private Sub btnClearRep_Click()
-  Dim rec_before As Long, rec_after As Long
-  Dim t_start As Date, t_end As Date
-  rec_before = eScanLog.RecordNumber
-  t_start = Now
-  SetStatus "处理中..."
-  eScanLog.ClearRepeate
-  rec_after = eScanLog.RecordNumber
-  t_end = Now
-  MsgBox "重复数据清理完成，耗时" & DateDiff("s", t_start, t_end) & "秒，去除记录：" & rec_before - rec_after & "条"
-  SetStatus "待命"
 End Sub
 
 Private Sub btnExportCopy_Click()
@@ -368,7 +347,7 @@ Private Sub btnExportCopy_Click()
 End Sub
 
 Private Sub btnLoadReported_Click()
-  Dim res As ADODB.Recordset
+  Dim Res As ADODB.Recordset
   
   If currentBar = "" Then Exit Sub
   
@@ -376,24 +355,24 @@ Private Sub btnLoadReported_Click()
   Set ht = New CHashTable
   lstURL.Clear
   
-  Set res = eScanLog.Where("`bar_id` = ? and `reported` = 'done'", tb.Item(currentBar))
+  Set Res = eScanLog.Where("`bar_id` = ? and `reported` = 'done'", tb.Item(currentBar))
   
-  If res.RecordCount = 0 Then
-    eScanLog.Db.ReleaseRecordset res
+  If Res.RecordCount = 0 Then
+    eScanLog.Db.ReleaseRecordset Res
     Exit Sub
   End If
   
-  Do While Not res.EOF
-    ht.Item(lstURL.ListCount) = res.fields("url").value
-    lstURL.AddItem res.fields("title").value
-    res.MoveNext
+  Do While Not Res.EOF
+    ht.Item(lstURL.ListCount) = Res.Fields("url").Value
+    lstURL.AddItem Res.Fields("title").Value
+    Res.MoveNext
   Loop
   
-  eScanLog.Db.ReleaseRecordset res
+  eScanLog.Db.ReleaseRecordset Res
 End Sub
 
 Private Sub btnLoadUnreported_Click()
-  Dim res As ADODB.Recordset
+  Dim Res As ADODB.Recordset
   
   If currentBar = "" Then Exit Sub
   
@@ -401,20 +380,20 @@ Private Sub btnLoadUnreported_Click()
   Set ht = New CHashTable
   lstURL.Clear
   
-  Set res = eScanLog.Where("`bar_id` = ? and `reported` is null", tb.Item(currentBar))
+  Set Res = eScanLog.Where("`bar_id` = ? and `reported` is null", tb.Item(currentBar))
   
-  If res.RecordCount = 0 Then
-    eScanLog.Db.ReleaseRecordset res
+  If Res.RecordCount = 0 Then
+    eScanLog.Db.ReleaseRecordset Res
     Exit Sub
   End If
   
-  Do While Not res.EOF
-    ht.Item(lstURL.ListCount) = res.fields("url").value
-    lstURL.AddItem res.fields("title").value
-    res.MoveNext
+  Do While Not Res.EOF
+    ht.Item(lstURL.ListCount) = Res.Fields("url").Value
+    lstURL.AddItem Res.Fields("title").Value
+    Res.MoveNext
   Loop
   
-  eScanLog.Db.ReleaseRecordset res
+  eScanLog.Db.ReleaseRecordset Res
 End Sub
 
 Private Sub btnOpenAll_Click()
@@ -430,7 +409,7 @@ Private Sub btnOpenAll_Click()
 End Sub
 
 Private Sub btnReadHistory_Click()
-  Dim res As ADODB.Recordset
+  Dim Res As ADODB.Recordset
   
   If currentBar = "" Then Exit Sub
   
@@ -438,20 +417,20 @@ Private Sub btnReadHistory_Click()
   Set ht = New CHashTable
   lstURL.Clear
   
-  Set res = eScanLog.Where("`bar_id` = ?", tb.Item(currentBar))
+  Set Res = eScanLog.Where("`bar_id` = ?", tb.Item(currentBar))
   
-  If res.RecordCount = 0 Then
-    eScanLog.Db.ReleaseRecordset res
+  If Res.RecordCount = 0 Then
+    eScanLog.Db.ReleaseRecordset Res
     Exit Sub
   End If
   
-  Do While Not res.EOF
-    ht.Item(lstURL.ListCount) = res.fields("url").value
-    lstURL.AddItem res.fields("title").value
-    res.MoveNext
+  Do While Not Res.EOF
+    ht.Item(lstURL.ListCount) = Res.Fields("url").Value
+    lstURL.AddItem Res.Fields("title").Value
+    Res.MoveNext
   Loop
   
-  eScanLog.Db.ReleaseRecordset res
+  eScanLog.Db.ReleaseRecordset Res
 End Sub
 
 Private Sub btnScan_Click()
@@ -498,6 +477,7 @@ Private Sub btnScan_Click()
     Call scanPage(currentBar, txtKeyWord.text, i)
     DoEvents
   Next i
+  SetStatus "完成扫描"
 End Sub
 
 Private Sub btnSearchName_Click()
@@ -576,7 +556,7 @@ Private Sub Command2_Click()
 End Sub
 
 Private Sub Command3_Click()
-  Dim res As ADODB.Recordset
+  Dim Res As ADODB.Recordset
   Dim webGet As New WebCode
   Dim url As String
   Dim total As Long, index As Long, delcount As Long
@@ -586,26 +566,26 @@ Private Sub Command3_Click()
   Set ht = Nothing
   Set ht = New CHashTable
   
-  Set res = eScanLog.Where("`bar_id` = ?", tb.Item(currentBar))
+  Set Res = eScanLog.Where("`bar_id` = ?", tb.Item(currentBar))
   
-  If res.RecordCount = 0 Then
-    eScanLog.Db.ReleaseRecordset res
+  If Res.RecordCount = 0 Then
+    eScanLog.Db.ReleaseRecordset Res
     Exit Sub
   End If
-  total = res.RecordCount
+  total = Res.RecordCount
   index = 0
-  Do While Not res.EOF
+  Do While Not Res.EOF
     index = index + 1
-    url = res.fields("url").value
+    url = Res.Fields("url").Value
     If InStr(1, webGet.GetHTMLCode(url), "doodle-404") > 0 Then
-      eScanLog.Db.ExecParamNonQuery "delete from scan_logs where id=?", res.fields("id").value
+      eScanLog.Db.ExecParamNonQuery "delete from scan_logs where id=?", Res.Fields("id").Value
       delcount = delcount + 1
     End If
     SetStatus "[" & index & "/" & total & "/" & delcount & "]检查：" & url
-    res.MoveNext
+    Res.MoveNext
   Loop
   
-  eScanLog.Db.ReleaseRecordset res
+  eScanLog.Db.ReleaseRecordset Res
   
   'SetStatus "待命"
 End Sub
@@ -694,6 +674,7 @@ Private Sub scanPage(ByVal barName As String, ByVal keyword As String, ByVal pag
   Dim web As New WebCode
   Dim pageCode As String
   Dim url As String, baseUrl As String
+  Dim fullUrl As String, title As String
   
   Dim htmlDom As New HTMLDocument
   Dim htmlHrefs As IHTMLElementCollection
@@ -708,27 +689,37 @@ Private Sub scanPage(ByVal barName As String, ByVal keyword As String, ByVal pag
   htmlDom.body.innerHTML = pageCode
 
   Set htmlHrefs = htmlDom.getElementsByTagName("a")
+  eScanLog.m_DBH.OpenDB
   For Each htmlHref In htmlHrefs
+    fullUrl = baseUrl & htmlHref.pathname
+    title = htmlHref.title
     If LCase(htmlHref.ClassName) = "j_th_tit " Then
       If keyword = "" Then
-        ht.Item(lstURL.ListCount) = baseUrl & htmlHref.pathname
+        ht.Item(lstURL.ListCount) = fullUrl
         'save to db
-        If eScanLog.Where("url = ?", ht.Item(lstURL.ListCount)).RecordCount = 0 Then
-          eScanLog.Create tb.Item(barName), keyword, baseUrl & htmlHref.pathname, htmlHref.title
+        If eScanLog.Where("url = ?", fullUrl).RecordCount = 0 Then
+          eScanLog.Create tb.Item(barName), keyword, fullUrl, title
+          SetStatus "保存：" & title & " - " & fullUrl
+        Else
+          SetStatus "缓存：" & title & " - " & fullUrl
         End If
-        lstURL.AddItem htmlHref.title
+        lstURL.AddItem title
       Else
-        If htmlHref.title Like "*" & keyword & "*" Then
-          ht.Item(lstURL.ListCount) = baseUrl & htmlHref.pathname
+        If title Like "*" & keyword & "*" Then
+          ht.Item(lstURL.ListCount) = fullUrl
           'save to db
-          If eScanLog.Where("url = ?", ht.Item(lstURL.ListCount)).RecordCount = 0 Then
-            eScanLog.Create tb.Item(barName), keyword, baseUrl & htmlHref.pathname, htmlHref.title
+          If eScanLog.Where("url = ?", fullUrl).RecordCount = 0 Then
+            eScanLog.Create tb.Item(barName), keyword, fullUrl, title
+            SetStatus "保存：" & title & " - " & fullUrl
+          Else
+            SetStatus "缓存：" & title & " - " & fullUrl
           End If
-          lstURL.AddItem htmlHref.title
+          lstURL.AddItem title
         End If
       End If
     End If
   Next
+  eScanLog.m_DBH.CloseDB
 End Sub
 
 Private Sub scanPagePoster(ByVal barName As String, ByVal keyword As String, ByVal pageIndex As Long)
@@ -736,6 +727,7 @@ Private Sub scanPagePoster(ByVal barName As String, ByVal keyword As String, ByV
   Dim web As New WebCode
   Dim pageCode As String
   Dim url As String, baseUrl As String
+  Dim fullUrl As String, title As String
   
   Dim htmlDom As New HTMLDocument
   Dim htmlItems As IHTMLElementCollection
@@ -751,17 +743,26 @@ Private Sub scanPagePoster(ByVal barName As String, ByVal keyword As String, ByV
   htmlDom.body.innerHTML = pageCode
 
   Set htmlItems = htmlDom.getElementsByTagName("li")
+  eScanLog.m_DBH.OpenDB
   For Each htmlItem In htmlItems
     If htmlItem.ClassName = " j_thread_list clearfix" Then
       titleName = GetTitleName(htmlItem)
+      title = titleName(0)
+      fullUrl = titleName(2)
       If titleName(1) Like "*" & keyword & "*" Then
         ht.Item(lstURL.ListCount) = titleName(2)
         'save to db
-        eScanLog.Create tb.Item(barName), keyword, titleName(2), titleName(0)
-        lstURL.AddItem titleName(0)
+        If eScanLog.Where("url = ?", fullUrl).RecordCount = 0 Then
+          eScanLog.Create tb.Item(barName), keyword, fullUrl, title
+          SetStatus "保存：" & title & " - " & fullUrl
+        Else
+          SetStatus "缓存：" & title & " - " & fullUrl
+        End If
+        lstURL.AddItem title
       End If
     End If
   Next
+  eScanLog.m_DBH.CloseDB
 End Sub
 
 Private Function GetTitleName(li As HTMLLIElement) As Variant
@@ -817,17 +818,17 @@ DOIT:
 End Function
 
 Private Sub InitForm()
-  Set res = eTieba.Db.ExecQuery("select `bar_name`,`id` from `tiebas`")
-  If res.RecordCount = 0 Then
-    eTieba.Db.ReleaseRecordset res
+  Set Res = eTieba.Db.ExecQuery("select `bar_name`,`id` from `tiebas`")
+  If Res.RecordCount = 0 Then
+    eTieba.Db.ReleaseRecordset Res
     Exit Sub
   End If
-  Do While Not res.EOF
-    lstTieBas.AddItem res.fields("bar_name").value
-    tb.Item(res.fields("bar_name").value) = res.fields("id").value
-    res.MoveNext
+  Do While Not Res.EOF
+    lstTieBas.AddItem Res.Fields("bar_name").Value
+    tb.Item(Res.Fields("bar_name").Value) = Res.Fields("id").Value
+    Res.MoveNext
   Loop
-  eTieba.Db.ReleaseRecordset res
+  eTieba.Db.ReleaseRecordset Res
 End Sub
 
 '删帖代码

@@ -33,7 +33,8 @@ Option Explicit
 '------------------------------------------------------------------------------
 Private m_TableName As String
 Private m_TableFields As String
-Private m_DbHelper As AdodbHelper
+'Private m_DbHelper As AdodbHelper
+Private m_DbHelper As clsAccessHelper
 
 '------------------------------------------------------------------------------
 '       属性变量
@@ -44,7 +45,7 @@ End Property
 Public Property Get TableFields() As String
 End Property
 
-Public Property Get Db() As AdodbHelper
+Public Property Get Db() As clsAccessHelper
 End Property
 
 '//////////////////////////////////////////////////////////////////////////////
@@ -57,7 +58,7 @@ End Property
 '       初始化
 '------------------------------------------------------------------------------
 Private Sub Class_Initialize()
-  Set m_DbHelper = New AdodbHelper
+  Set m_DbHelper = New clsAccessHelper
 End Sub
 
 '------------------------------------------------------------------------------

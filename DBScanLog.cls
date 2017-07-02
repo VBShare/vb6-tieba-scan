@@ -16,7 +16,9 @@ Implements DBModel
 'Private
 Private m_TableName As String
 Private m_TableFields As String
-Private m_DBH As New AdodbHelper
+'Private m_DBH As New AdodbHelper
+Public m_DBH As New clsAccessHelper
+
 Private m_UserName As String
 Private m_IsChain As Boolean
 
@@ -27,10 +29,10 @@ Private Sub Class_Initialize()
   m_TableFields = "id:integer,bar_id:integer,keyword:string,title:text,url:text,reported:text"
 End Sub
 
-Private Property Get DbModel_Db() As AdodbHelper
+Private Property Get DbModel_Db() As clsAccessHelper
   Set DbModel_Db = m_DBH
 End Property
-Public Property Get Db() As AdodbHelper
+Public Property Get Db() As clsAccessHelper
   Set Db = DbModel_Db
 End Property
 
@@ -56,61 +58,44 @@ Public Property Get TableName() As String
 End Property
 
 Private Function DBModel_Where(ByVal Conditions As String, ParamArray Params() As Variant) As ADODB.Recordset
-  Dim sql As String
+  Dim SQL As String
   If Len(Conditions) = 0 Then
-    sql = "select * from " & m_TableName
+    SQL = "select * from " & m_TableName
   Else
-    sql = "select * from " & m_TableName & " where " & Conditions
+    SQL = "select * from " & m_TableName & " where " & Conditions
   End If
-  Set DBModel_Where = m_DBH.ExecParamQuery(sql, Params)
+  Set DBModel_Where = m_DBH.ExecParamQuery(SQL, Params)
 End Function
 
 Public Function Where(ByVal Conditions As String, ParamArray Params() As Variant) As ADODB.Recordset
-  Dim sql As String
+  Dim SQL As String
   If Len(Conditions) = 0 Then
-    sql = "select * from " & m_TableName
+    SQL = "select * from " & m_TableName
   Else
-    sql = "select * from " & m_TableName & " where " & Conditions
+    SQL = "select * from " & m_TableName & " where " & Conditions
   End If
-  Set Where = m_DBH.ExecParamQuery(sql, Params)
+  Set Where = m_DBH.ExecParamQuery(SQL, Params)
 End Function
 
 Public Sub Create(ByVal bar_id As Long, ByVal keyword As String, ByVal url As String, ByVal title As String)
-  Dim sql As String
+  Dim SQL As String
   Dim id As Long
-  Dim res As ADODB.Recordset
-  Set res = m_DBH.ExecQuery("select id from " & m_TableName & " order by id desc")
-  If res.RecordCount = 0 Then
+  Dim Res As ADODB.Recordset
+  Set Res = m_DBH.ExecQuery("select id from " & m_TableName & " order by id desc")
+  If Res.RecordCount = 0 Then
     id = 0
   Else
-    id = res.fields("id").Value
+    id = Res.Fields("id").Value
   End If
   id = id + 1
   '"id:integer,bar_id:integer,keyword:string,url:text"
-  sql = "INSERT INTO `" & m_TableName & "` (`id`, `bar_id`, `keyword`, `url`, `title`) VALUES (" & _
+  SQL = "INSERT INTO `" & m_TableName & "` (`id`, `bar_id`, `keyword`, `url`, `title`) VALUES (" & _
         "?, ?, ?, ?, ?);"
-  m_DBH.ExecParamNonQuery sql, id, bar_id, keyword, url, title
-End Sub
-
-Public Sub ClearRepeate()
-  Dim sql As String
-  Dim res As ADODB.Recordset
-  Dim counter As Long
-  sql = "SELECT bar_id,title,url FROM scan_logs GROUP BY url,bar_id,title"
-  Set res = m_DBH.ExecQuery(sql)
-  m_DBH.ExecNonQuery "DELETE FROM scan_logs"
-  sql = "INSERT INTO `" & m_TableName & "` (`id`, `bar_id`, `keyword`, `url`, `title`) VALUES (" & _
-        "?, ?, '', ?, ?);"
-  Do While Not res.EOF
-    counter = counter + 1
-    m_DBH.ExecParamNonQuery sql, counter, res.fields("bar_id").Value, res.fields("url").Value, res.fields("title").Value
-    DoEvents
-    res.MoveNext
-  Loop
+  m_DBH.ExecParamNonQuery SQL, id, bar_id, keyword, url, title
 End Sub
 
 Public Function RecordNumber() As Long
-  Dim sql As String
-  sql = "SELECT COUNT(1) FROM " & m_TableName
-  RecordNumber = CLng(m_DBH.ExecQueryScalar(sql))
+  Dim SQL As String
+  SQL = "SELECT COUNT(1) FROM " & m_TableName
+  RecordNumber = CLng(m_DBH.ExecScalar(SQL))
 End Function
