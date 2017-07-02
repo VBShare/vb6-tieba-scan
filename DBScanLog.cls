@@ -24,7 +24,7 @@ Private m_IsChain As Boolean
 Private Sub Class_Initialize()
   m_IsChain = False
   m_TableName = "scan_logs"
-  m_TableFields = "id:integer,bar_id:integer,keyword:string,title:text,url:text"
+  m_TableFields = "id:integer,bar_id:integer,keyword:string,title:text,url:text,reported:text"
 End Sub
 
 Private Property Get DbModel_Db() As AdodbHelper
